@@ -7,34 +7,31 @@ class GameBoard:
     def __init__(self):
         self.new_board()
 
+    # Initialize SIZE x SIZE matrix with ''
     def new_board(self):
-        self.board = [
-            ['', '', ''],
-            ['', '', ''],
-            ['', '', '']
-        ]
+        self.board = [['' for col in range(SIZE)] for row in range(SIZE)]
 
-    def update_board(self, r, c, val):
-        self.board[r][c] = val
+    def update_board(self, row, col, val):
+        self.board[row][col] = val
 
     def __str__(self):
-        out_str =  "           column\n"
+        out_str = "           column\n"
         out_str += "row |    1    2    3\n"
         out_str += "----|-----------------\n"
-                    
-        for r in range(SIZE):
-            out_str += f" {r+1}  |  "
-            for c in range(SIZE):
-                if self.board[r][c] == 'o':
+
+        for row in range(SIZE):
+            out_str += f" {row+1}  |  "
+            for col in range(SIZE):
+                if self.board[row][col] == 'o':
                     out_str += " ⭕ "
-                elif self.board[r][c] == 'x':
+                elif self.board[row][col] == 'x':
                     out_str += " ❌ "
                 else:
                     out_str += "    "
 
-                if c != 2:
+                if col != 2:
                     out_str += "|"
-            if r != 2:
+            if row != 2:
                 out_str += "\n    |  ----+----+----\n"
         return out_str + '\n'
 
@@ -58,7 +55,7 @@ def check_win_lose(board):
     # Check diagonals
     diag1 = [board[i][i] for i in range(SIZE)]
     diag2 = [board[i][2-i] for i in range(SIZE)]
-    if all(cell == 'x' for cell in diag1) or all(cell == 'c' for cell in diag2):
+    if all(cell == 'x' for cell in diag1) or all(cell == 'col' for cell in diag2):
         return 'x'
     elif all(cell == 'o' for cell in diag1) or all(cell == 'o' for cell in diag2):
         return 'o'
@@ -88,11 +85,11 @@ def get_input(board):
 
         values = user_input.split()
         try:
-            r = int(values[0])
-            c = int(values[1])
+            row = int(values[0])
+            col = int(values[1])
 
-            if 0 < r <= SIZE and 0 < c <= SIZE:
-                if board[r-1][c-1] != '':
+            if 0 < row <= SIZE and 0 < col <= SIZE:
+                if board[row-1][col-1] != '':
                     print("This location is already marked...")
                 else:
                     is_valid = True
@@ -101,15 +98,15 @@ def get_input(board):
         except:
             print("Invalid input...")
 
-    return r-1, c-1
+    return row-1, col-1
 
 
 # AI player algorithm
 def minimax(board, depth, isMaximizing):
     result = check_win_lose(board)
-    if result == "x":
+    if result == ('x' if isMaximizing else 'o'):
         return 1
-    elif result == "o":
+    elif result == ('o' if isMaximizing else 'x'):
         return -1
     elif result == "Tie":
         return 0
@@ -133,9 +130,7 @@ def minimax(board, depth, isMaximizing):
     if len(bestMoves) > 0:
         # Add randomness by randomly choosing among the best moves
         randomMove = random.choice(bestMoves)
-        bestMove = (randomMove[0], randomMove[1],
-                    ('x' if isMaximizing else 'o'))
-        board[randomMove[0]][randomMove[1]] = ('x' if isMaximizing else 'o')
+        bestMove = (randomMove[0], randomMove[1])
         return bestMove
 
 
@@ -166,24 +161,24 @@ print(game_board)
 
 # Game Loop
 while is_quit == False:
-    
-    #Get user input for user's turn
+
+    # Get user input for user's turn
     if user_turn:
         user_in = get_input(game_board.board)
         game_board.update_board(*user_in, user_icon)
         user_turn = False
-    #Get AI input for AI's turn
+    # Get AI input for AI's turn
     else:
         AI_is_x = (True if AI_icon == 'x' else False)
         AI_in = minimax(game_board.board, 0, AI_is_x)
-        
+
         # Validate AI output
         if isinstance(AI_in, int):
             print('AI broke! Restart application.')
             quit(1)
-        
+
         time.sleep(0.5)
-        game_board.update_board(*AI_in)
+        game_board.update_board(*AI_in, AI_icon)
         user_turn = True
         print("AI Turn Over:")
     print(game_board)
